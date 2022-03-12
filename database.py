@@ -5,49 +5,51 @@ class SLEEPdatabase:
         self.database = sqlite3.connect(database_src)
         self.cursr = self.database.cursor()
         self.cursr.execute("""CREATE TABLE IF NOT EXISTS sleep_tracker(
-                    datetime_start DATETIME,
-                    datetime_end DATETIME,
+                    date_start TEXT,
+                    time_start TEXT,
+                    date_end TEXT,
+                    time_end TEXT,
                     duration TIME
                 )""")
         self.cursr.execute("""CREATE TABLE IF NOT EXISTS sleep_plans(
-                    datetime_start DATETIME,
-                    datetime_end DATETIME,
+                    date_start TEXT,
+                    time_start TEXT,
+                    date_end TEXT,
+                    time_end TEXT,
                     duration TIME
                 )""")
         self.database.commit()
 
-    def insert_tracker(self, datetime_start, datetime_end, duration):
-        self.cursr.execute("INSERT INTO sleep_tracker values (?, ?, ?)",
-                            (datetime_start, datetime_end, duration))
-        self.database.commit()
-
-    def insert_plans(self, datetime_start, datetime_end, duration):
-        self.cursr.execute("INSERT INTO sleep_plans values (?, ?, ?)",
-                            (datetime_start, datetime_end, duration))
+    def insert_all(self, table_name, data):
+        print(data)
+        self.cursr.executemany(f'INSERT INTO {table_name} values (?, ?, ?, ?, ?)', data)
         self.database.commit()
     
-    def fetch_tracker(self):
-        self.cursr.execute("SELECT rowid, * FROM sleep_tracker")
+    def insert_one(self, table_name, date_start, time_start, date_end, time_end, duration):
+        self.cursr.execute(f'''INSERT INTO {table_name} values (?, ?, ?, ?, ?)''',
+                            (date_start, time_start, 
+                            date_end, time_end,
+                            duration))
+        self.database.commit()
+    
+    def fetch(self, table_name):
+        self.cursr.execute(f'SELECT rowid, * FROM {table_name}')
         return self.cursr.fetchall()
     
-    def fetch_plans(self):
-        self.cursr.execute("SELECT rowid, * FROM sleep_plans")
-        return self.cursr.fetchall()
-    
-    def remove_tracker(self):
-        self.cursr.execute("DELETE FROM sleep_tracker WHERE id=?", (id,))
+    def remove(self, table_name, id):
+        self.cursr.execute(f'DELETE FROM {table_name} WHERE rowid = {id}')
         self.database.commit()
 
-    def remove_plans(self):
-        self.cursr.execute("DELETE FROM sleep_plans WHERE id=?", (id,))
+    def update(self, table_name, id, date_start, time_start, date_end, time_end, duration):
+        self.cursr.execute(f'''UPDATE {table_name} SET 
+                            date_start = ?, time_start = ?,
+                            date_end = ?, time_end = ?,
+                            duration = ? WHERE rowid = {id}''',
+                            (date_start, time_start, 
+                            date_end, time_end,
+                            duration))
         self.database.commit()
 
-    def update_tracker(self, id, datetime_start, datetime_end, duration):
-        self.cursr.execute("UPDATE sleep_tracker SET datetime_start = ?, datetime_end = ?, duration = ? WHERE id = ?",
-                            (datetime_start, datetime_end, duration, id))
-        self.database.commit()
-    
-    def update_plans(self, id, datetime_start, datetime_end, duration):
-        self.cursr.execute("UPDATE sleep_plans SET datetime_start = ?, datetime_end = ?, duration = ? WHERE id = ?",
-                            (datetime_start, datetime_end, duration, id))
+    def delete_table(self, table_name):
+        self.cursr.execute(f'DELETE FROM {table_name}')
         self.database.commit()
