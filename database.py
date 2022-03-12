@@ -17,12 +17,12 @@ class SLEEPdatabase:
         self.database.commit()
 
     def insert_tracker(self, datetime_start, datetime_end, duration):
-        self.cursr.execute("INSERT INTO sleep_tracker values (NULL, ?, ?, ?)",
+        self.cursr.execute("INSERT INTO sleep_tracker values (?, ?, ?)",
                             (datetime_start, datetime_end, duration))
         self.database.commit()
 
     def insert_plans(self, datetime_start, datetime_end, duration):
-        self.cursr.execute("INSERT INTO sleep_plans values (NULL, ?, ?, ?)",
+        self.cursr.execute("INSERT INTO sleep_plans values (?, ?, ?)",
                             (datetime_start, datetime_end, duration))
         self.database.commit()
     

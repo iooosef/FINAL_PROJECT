@@ -1,2 +1,5 @@
 
 calendarTest.py
+test_sleep_database.py
+*.pyc
+sleep.db
