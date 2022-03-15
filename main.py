@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
-
+from tkcalendar import *
+from tkinter import ttk
 
 
 class LogInWindow():  # login window
@@ -82,7 +83,8 @@ class NewMain(Frame):
                 newmain.destroy()
                 LogInWindow()
             else:
-                messagebox.showinfo("Please wait", "Navigating back..")
+                messagebox.showinfo("Please wait...", "Navigating back..")
+
 
         fileMenu = Menu(menu)
         fileMenu.add_command(label="Logout", command=surelogout)
@@ -105,17 +107,135 @@ class NewMain(Frame):
         menu.add_cascade(label="Help", menu=helpMenu)
 
 
-        self.text = Label(newmain, text="SetPy App", font=('Forte', 20), width=100, fg='black', bg='#ffd39b')
-        self.text.pack(ipady=5, padx=10, pady=10)
+        self.text = Label(newmain, text="SetPy App", font=('Forte', 30), width=100, fg='black', bg='#ffd39b')
+        self.text.pack(anchor=NW, ipady=5, padx=10, pady=10)
 
 
+# entry(important)
+# startentry
+
+        self.text1 = Label(newmain, text="Start Date:", font=('Comic Sans MS', 12),fg='black')
+        self.text1.place(anchor=NW, x=35, y=100)
+        self.entry = Entry(newmain, font=('Comic Sans', 12), width=25,borderwidth=2)
+        self.entry.place(x=145, y=106)
+        self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
+        self.text1.place(x=235, y=130)
+
+# endentry
+
+        self.text1 = Label(newmain, text="End Date:", font=('Comic Sans MS', 12), fg='black')
+        self.text1.place(anchor=NW, x=35, y=150)
+        self.entry = Entry(newmain, font=('Comic Sans', 12), width=25,borderwidth=2)
+        self.entry.place(x=145, y=156)
+        self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
+        self.text1.place(x=235, y=180)
+
+# starttime
+
+        self.text1 = Label(newmain, text="Time of Sleep:(24 hours)", font=('Comic Sans MS', 12), fg='black')
+        self.text1.place(anchor=NW, x=35, y=415)
+        self.text1 = Label(newmain, text="Hour:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=45, y=460)
+        self.text1 = Label(newmain, text="Minute:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=150, y=460)
+        self.text1 = Label(newmain, text="Second:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=270, y=460)
+
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=88, y=460)
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=206, y=460)
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=330, y=460)
+
+# endtime
+
+        self.text1 = Label(newmain, text="End of Sleep:(24 hours)", font=('Comic Sans MS', 12), fg='black')
+        self.text1.place(anchor=NW, x=35, y=500)
+        self.text1 = Label(newmain, text="Hour:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=45, y=545)
+        self.text1 = Label(newmain, text="Minute:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=150, y=545)
+        self.text1 = Label(newmain, text="Second:", font=('Comic Sans MS', 10), fg='black')
+        self.text1.place(anchor=NW, x=269, y=545)
+
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=88, y=545)
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=206, y=545)
+        self.entry = Entry(newmain, font=('Comic Sans MS', 11), width=6, fg='black',borderwidth=2)
+        self.entry.place(anchor=NW, x=330, y=545)
+
+# calendar
+
+        self.calendar = Calendar(newmain, selectmode= "day", year=2022, month=3, day=1)
+        self.calendar.place(anchor=NW, x=121 ,y=210)
+
+# Buttons
+        self.button = Button(newmain ,width=10, bg='#ffd39b',fg='black', text='Submit', font=('Comic Sans MS',10),borderwidth=0, border=3)
+        self.button.place(anchor=NW, x=80, y=600)
+        self.label = Label(newmain, text="", width=90, height=3, bg='#ffd39b')
+        self.label.place(anchor=NW, x=410, y=592)
+        self.button = Button(newmain, width=10, bg='white', fg='black', text='Update', font=('Comic Sans MS', 10),
+                             borderwidth=0, border=3)
+        self.button.place(anchor=NW, x=480, y=600)
+        self.button = Button(newmain, width=10, bg='white', fg='black', text='Delete', font=('Comic Sans MS', 10),
+                             borderwidth=0, border=3)
+        self.button.place(anchor=NW, x=600, y=600)
+        self.button = Button(newmain, width=10, bg='white', fg='black', text='Clear All', font=('Comic Sans MS', 10),
+                             borderwidth=0, border=3)
+        self.button.place(anchor=NW, x=720, y=600)
+        self.button = Button(newmain, width=16, bg='white', fg='black', text='View Improvements', font=('Comic Sans MS', 10),
+                             borderwidth=0, border=3)
+        self.button.place(anchor=NW, x=840, y=600)
+
+# treeview
+
+        text = Label(newmain, text="Sleep Data", font=('Comic Sans MS', 13), fg='black', bg='#ffd39b', width=60)
+        text.place(anchor=NW, x=430, y=110)
+        text = Label(newmain, text="", font=('Comic Sans MS', 13), fg='black', bg='#ffd39b', width=2, height=18)
+        text.place(anchor=NW, x=410, y=110)
+        text = Label(newmain, text="", font=('Comic Sans MS', 13), fg='black', bg='#ffd39b', width=2, height=18)
+        text.place(anchor=NW, x=1020, y=110)
+        text = Label(newmain, text="", font=('Comic Sans MS', 13), fg='black', bg='#ffd39b', width=63)
+        text.place(anchor=NW, x=410, y=530)
 
 
+        tablestyle = ttk.Style()
+        tablestyle.theme_use("clam")
+        tablestyle.configure("Treeview",
+                             background = 'white',
+                             foreground = 'black',
+                             rowheight = 25,
+                             fieldbackground = 'white'
+                             )
+        tablestyle.map("Treeview", background=[('selected','#ffd39b')])
 
+        table = ttk.Treeview(newmain, height=15)
+
+        table['columns'] = ("Start Date", "End Date","Start of Sleep", "End of Sleep", "Hours of Sleep", "Status")
+
+        table.column('#0', width=0, stretch=NO)
+        table.column('Start Date', anchor=W, width=90)
+        table.column('End Date', anchor=W, width=90)
+        table.column('Start of Sleep', anchor=W, width=100)
+        table.column('End of Sleep', anchor=W, width=100)
+        table.column('Hours of Sleep', anchor=W, width=110)
+        table.column('Status', anchor=W, width=110)
+
+        table.heading("#0", text="", anchor=W)
+        table.heading("Start Date", text="Start Date", anchor=W)
+        table.heading("End Date", text="End Date", anchor=W)
+        table.heading("Start of Sleep", text="Start of Sleep", anchor=W)
+        table.heading("End of Sleep", text="End of Sleep", anchor=W)
+        table.heading("Hours of Sleep", text="Hours of Sleep", anchor=W)
+        table.heading("Status", text="Status", anchor=W)
+        table.place(anchor=NW, x=425, y=140)
 
 
         newmain.title("SetPy App")
-        newmain.geometry("700x500")
+        newmain.resizable(0,0)
+        newmain.geometry("1080x700")
         newmain.mainloop()
 
     def about_popbox(self):
