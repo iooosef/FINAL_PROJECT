@@ -4,6 +4,7 @@ from tkcalendar import *
 from tkinter import ttk
 
 
+
 class LogInWindow():  # login window
 
     def __init__(self):
@@ -11,6 +12,7 @@ class LogInWindow():  # login window
         global login
         login = Tk()
         login.title("SetPy")
+        login.resizable(0,0)
         login.geometry("400x400")
 
         self.menu1 = Menu(login)
@@ -26,7 +28,7 @@ class LogInWindow():  # login window
             elif user == "Admin" and passw == "admin123":
                 messagebox.showinfo("Please Wait..", "Logging In...")
                 login.destroy()
-                new_window = NewMain()
+                NewMain()
             else:
                 messagebox.showinfo("Warning!", "Invalid!")
 
@@ -80,11 +82,15 @@ class NewMain(Frame):
 
         def surelogout():
             if messagebox.askyesno("Verify","Are you sure you want to logout?"):
+                messagebox.showinfo("Please wait..", "Logging out..")
                 newmain.destroy()
                 LogInWindow()
             else:
                 messagebox.showinfo("Please wait...", "Navigating back..")
-
+        def cr():
+            newmain.destroy()
+            Createplan()
+# menus
 
         fileMenu = Menu(menu)
         fileMenu.add_command(label="Logout", command=surelogout)
@@ -93,7 +99,7 @@ class NewMain(Frame):
         menu.add_cascade(label="File", menu=fileMenu)
 
         createMenu = Menu(menu)
-        createMenu.add_command(label="Create Plan")
+        createMenu.add_command(label="Create Plan", command=cr)
         menu.add_cascade(label="Create Plan", menu=createMenu)
 
         viewplannMenu = Menu(menu)
@@ -118,7 +124,7 @@ class NewMain(Frame):
         self.text1.place(anchor=NW, x=35, y=100)
         self.entry = Entry(newmain, font=('Comic Sans', 12), width=25,borderwidth=2)
         self.entry.place(x=145, y=106)
-        self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
+        self.text1 = Label(newmain, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
         self.text1.place(x=235, y=130)
 
 # endentry
@@ -127,7 +133,7 @@ class NewMain(Frame):
         self.text1.place(anchor=NW, x=35, y=150)
         self.entry = Entry(newmain, font=('Comic Sans', 12), width=25,borderwidth=2)
         self.entry.place(x=145, y=156)
-        self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
+        self.text1 = Label(newmain, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
         self.text1.place(x=235, y=180)
 
 # starttime
@@ -268,5 +274,126 @@ class HelpWindow():
         help.geometry("400x500")
         help.mainloop()
 
+class Createplan():
+
+    def __init__(self):
+
+        create = Tk()
+
+        def surequit():
+            if messagebox.askyesno("Verify", "Are you sure you want to quit?"):
+                exit()
+            else:
+                messagebox.showinfo("Return", "User will return to the Main Window.")
+
+        def surelogout():
+            if messagebox.askyesno("Verify","Are you sure you want to logout?"):
+                messagebox.showinfo("Please wait..", "Logging out..")
+                create.destroy()
+                LogInWindow()
+            else:
+                messagebox.showinfo("Please wait...", "Navigating back..")
+        def back():
+            create.destroy()
+            NewMain()
+
+        menu = Menu(create)
+        create.config(menu=menu)
+
+        fileMenu = Menu(menu)
+        fileMenu.add_command(label="Logout", command=surelogout)
+        fileMenu.add_separator()
+        fileMenu.add_command(label="Exit", command=surequit)
+        menu.add_cascade(label="File", menu=fileMenu)
+
+        createMenu = Menu(menu)
+        createMenu.add_command(label="Main", command=back)
+        menu.add_cascade(label="Main", menu=createMenu)
+
+        viewplannMenu = Menu(menu)
+        viewplannMenu.add_command(label="View Plan")
+        menu.add_cascade(label="View Plan", menu=viewplannMenu)
+
+        helpMenu = Menu(menu)
+        helpMenu.add_command(label="Help", command=HelpWindow)
+        helpMenu.add_separator()
+        helpMenu.add_command(label="About", command=self.about_popbox)
+        menu.add_cascade(label="Help", menu=helpMenu)
+
+# ENTRIES
+
+        label = Label(create, text="SetPy App", font=('Forte', 30), fg='black', bg='#ffd39b', width=33)
+        label.pack(anchor=NW, padx=10, pady=5)
+
+        text = Label(create, text="Set Start Date:", font=('Comic Sans MS', 12), fg='black')
+        text.place(anchor=NW, x=40, y=100)
+        text = Label(create, text="Set End Date:", font=('Comic Sans MS', 12), fg='black')
+        text.place(anchor=NW, x=40, y=170)
+        text = Label(create, text="Set Start Time:", font=('Comic Sans MS', 12), fg='black')
+        text.place(anchor=NW, x=40, y=240)
+        text = Label(create, text="Set End Time:", font=('Comic Sans MS', 12), fg='black')
+        text.place(anchor=NW, x=40, y=310)
+        text1 = Label(create, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
+        text1.place(x=234, y=130)
+        text1 = Label(create, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
+        text1.place(x=234, y=200)
+        text1 = Label(create, text="H:M:S", font=('Comic Sans MS', 9), fg='black')
+        text1.place(x=234, y=270)
+        text1 = Label(create, text="H:M:S", font=('Comic Sans MS', 9), fg='black')
+        text1.place(x=234, y=340)
+        calendar = Calendar(create, selectmode="day", year=2022, month=3, day=1)
+        calendar.place(anchor=NW, x=400, y=255)
+
+        button = Button(create, text= "Create Plan", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=15, borderwidth=3)
+        button.place(anchor=NW, x=70, y=400)
+
+        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
+        entry.place(anchor=NW, x=170, y=100)
+        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
+        entry.place(anchor=NW, x=170, y=170)
+        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
+        entry.place(anchor=NW, x=170, y=240)
+        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
+        entry.place(anchor=NW, x=170, y=310)
+
+# treeview
+
+        tablestyle = ttk.Style()
+        tablestyle.theme_use("clam")
+        tablestyle.configure("Treeview",
+                             background='white',
+                             foreground='black',
+                             rowheight=25,
+                             fieldbackground='white'
+                             )
+        tablestyle.map("Treeview", background=[('selected', '#ffd39b')])
+
+        table = ttk.Treeview(create, height=4, selectmode="none")
+
+        table['columns'] = ("Start Date", "End Date", "Start Time", "End Time")
+
+        table.column('#0', width=0, stretch=NO)
+        table.column('Start Date', anchor=W, width=62)
+        table.column('End Date', anchor=W, width=61)
+        table.column('Start Time', anchor=W, width=62)
+        table.column('End Time', anchor=W, width=61)
+        table.heading("#0", text="", anchor=W)
+        table.heading("Start Date", text="Start Date", anchor=W)
+        table.heading("End Date", text="End Date", anchor=W)
+        table.heading("Start Time", text="Start Time", anchor=W)
+        table.heading("End Time", text="End Time", anchor=W)
+        table.place( anchor=NW, x=400, y=100)
+
+        create.title("SetPy: Create your Own Sleep Schedule")
+        create.geometry("700x500")
+        create.resizable(0,0)
+        create.mainloop()
+
+    def about_popbox(self):
+        about_input = "SETPy is an application that tracks and evaluate your sleeping routine.\
+            \nIt will help you to track your sleeping hours and evaluate it if they are healthy or not.\
+            \n Windows 10\
+            \n Copyright 2022 Final Project 5"
+        messagebox.showinfo("SETPy About", about_input)
 
 LogInWindow()
