@@ -5,6 +5,7 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import date
 
 
 class LogInWindow():  # login window
@@ -20,14 +21,18 @@ class LogInWindow():  # login window
         self.menu1 = Menu(login)
         login.config(menu=self.menu1)
 
-        def log():
+        def log(event=None):
             user = username.get()
             passw = password.get()
             if user == "" and passw == "":
                 messagebox.showinfo("Warning!", "Please fill the required fields!")
             elif user == "Admin" and passw == "admin123":
-                messagebox.showinfo("Please Wait..", "Logging In...")
-                login.destroy()
+                login.withdraw()
+                try:
+                    login.after(800, login.destroy)
+                    messagebox.showinfo('Please Wait..', "Logging In...", master=login)
+                except:
+                    pass
                 new_window = NewMain()
                 NewMain()
             else:
@@ -71,6 +76,7 @@ class LogInWindow():  # login window
         self.entry2.place(x=140, y=240)
         self.button1 = Button(login, text="Log In", font=('Arial', 11), bg='#FFD39B', width=12, borderwidth=2,
                               command=log, height=1).place(x=150, y=290)
+        login.bind('<Return>', log)
         login.mainloop()
 
 
@@ -148,27 +154,27 @@ class NewMain(Frame):
             if 8 >= sleephours or sleephours <= 9:
                 Label(newmain, text="Good").pack()
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
-immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
+                                                            immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
             elif 10 >= sleephours:
                 Label(newmain, text="Excellent").pack()
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
-immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
+                                                            immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
             elif sleephours <= 11:
                 Label(newmain, text="Too much").pack()
                 messagebox.showinfo(title="Message", message="Please avoid sleeping too much. Too much is dangerous for your health! Even though sleep is essential,\
-it is not good for your helth to sleep for a long period of time. It will destroy our health balance that may lead to degrading our immune system.\
-For more information, search for the 'Oversleeping: The Effects & Health Risks of Sleeping Too Much' by 'Amerisleep' page.")
+                                                            it is not good for your helth to sleep for a long period of time. It will destroy our health balance that may lead to degrading our immune system.\
+                                                            For more information, search for the 'Oversleeping: The Effects & Health Risks of Sleeping Too Much' by 'Amerisleep' page.")
             else:
                 Label(newmain, text="Need Improvement").pack()
                 messagebox.showinfo(title="Message", message="Please Track your Habits and Rest More! This kind of habits will degrade your health and immune system.\
 Lack of Sleep will destroy your health balance and the strength of your immune system. For more information, \
 search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clinic' page.")
 
-        # startentry
+       # startentry
         self.text1 = Label(newmain, text="Start Date:", font=('Comic Sans MS', 12), fg='black')
         self.text1.place(anchor=NW, x=35, y=100)
-        self.entry = Entry(newmain, font=('Comic Sans', 12), width=25, borderwidth=2)
-        self.entry.place(x=145, y=106)
+        self.entry_startdate = ttk.Entry(newmain, font=('Comic Sans', 12), width=25)
+        self.entry_startdate.place(x=145, y=106)
         self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
         self.text1 = Label(newmain, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
         self.text1.place(x=235, y=130)
@@ -176,11 +182,31 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         # endentry
         self.text1 = Label(newmain, text="End Date:", font=('Comic Sans MS', 12), fg='black')
         self.text1.place(anchor=NW, x=35, y=150)
-        self.entry = Entry(newmain, font=('Comic Sans', 12), width=25, borderwidth=2)
-        self.entry.place(x=145, y=156)
+        self.entry_enddate = ttk.Entry(newmain, font=('Comic Sans', 12), width=25)
+        self.entry_enddate.place(x=145, y=156)
         self.text1 = Label(newmain, text="M|D|Y", font=('Comic Sans MS', 9), fg='black')
         self.text1 = Label(newmain, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
         self.text1.place(x=235, y=180)
+
+        # highlight focus startentry or endentry
+        styleEntry = ttk.Style()
+        styleEntry.theme_use('clam')
+        styleEntry.map('TEntry', lightcolor=[('focus', 'green')])
+
+        self.entry_startdate.bind('<Button-1>', lambda e: pick_date(e, self.entry_startdate))
+        self.entry_enddate.bind('<Button-1>', lambda e: pick_date(e, self.entry_enddate))
+
+        # calendar
+        date_today = date.today()
+        self.calendar = Calendar(newmain, selectmode="day", 
+                                    year=int(date_today.strftime("%Y")), 
+                                    month=int(date_today.strftime("%m")), 
+                                    day=int(date_today.strftime("%d")))
+        self.calendar.place(anchor=NW, x=110, y=210)
+        # get date calendar
+        def pick_date(event, entry_date):
+            entry_date.delete(0, END)
+            entry_date.insert(0, self.calendar.get_date())
 
         global hour1
         global min1
@@ -214,6 +240,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.seconds_start = Entry(newmain, textvariable=sec1, font=('Comic Sans MS', 11), width=6, fg='black',
                                    borderwidth=2)
         self.seconds_start.place(anchor=NW, x=330, y=460)
+
         # endtime
         self.text1 = Label(newmain, text="End of Sleep:(24 hours)", font=('Comic Sans MS', 12), fg='black')
         self.text1.place(anchor=NW, x=35, y=500)
@@ -232,9 +259,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.seconds_end = Entry(newmain, textvariable=sec2, font=('Comic Sans MS', 11), width=6, fg='black',
                                  borderwidth=2)
         self.seconds_end.place(anchor=NW, x=330, y=545)
-        # calendar
-        self.calendar = Calendar(newmain, selectmode="day", year=2022, month=3, day=1)
-        self.calendar.place(anchor=NW, x=121, y=210)
+
         # Buttons
         self.button = Button(newmain, width=10, bg='#ffd39b', fg='black', text='Submit', font=('Comic Sans MS', 10),
                              borderwidth=0, border=3, command=evaluation)
@@ -288,6 +313,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         table.heading("End of Sleep", text="End of Sleep", anchor=W)
         table.heading("Hours of Sleep", text="Hours of Sleep", anchor=W)
         table.heading("Status", text="Status", anchor=W)
+        
         # Adding Data (Temp)
         table.insert("", 'end', iid=0, values=("3/15/2022", "3/16/2022", "10:30:00", "9:30:00", "11", "Good"))
         table.pack(pady=20)
