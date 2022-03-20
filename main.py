@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date, datetime, timedelta
 from database import SLEEPdatabase
+import babel.numbers
 
 
 class LogInWindow():  # login window
@@ -309,7 +310,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.button.place(anchor=NW, x=80, y=600)
         self.label = Label(newmain, text="", width=90, height=3, bg='#ffd39b')
         self.label.place(anchor=NW, x=410, y=592)
-        self.button = Button(newmain, width=10, bg='white', fg='black', text='Update', font=('Comic Sans MS', 10),
+        self.button = Button(newmain, width=10, bg='white', fg='black', text='Reload', font=('Comic Sans MS', 10),
                              borderwidth=0, border=3, command=db_update)
         self.button.place(anchor=NW, x=480, y=600)
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Delete', font=('Comic Sans MS', 10),
@@ -684,19 +685,19 @@ class ViewPlan():  # Data Graph
         tablestyle.map("Treeview", background=[('selected', 'grey')])
 
         table = ttk.Treeview(view, height=8)
-        table['columns'] = ("id","Start Date", "End Date", "Start Time", "End Time", "Duration")
+        table['columns'] = ("id","Start Date", "Start Time", "End Date", "End Time", "Duration")
         table.column('#0', width=0, stretch=NO)
         table.column('id', anchor=W, width=2)
         table.column('Start Date', anchor=W, width=131)
-        table.column('End Date', anchor=W, width=131)
         table.column('Start Time', anchor=W, width=131)
+        table.column('End Date', anchor=W, width=131)
         table.column('End Time', anchor=W, width=131)
         table.column('Duration', anchor=W, width=131)
         table.heading("#0", text="", anchor=W)
         table.heading("id", text="id", anchor=W)
         table.heading("Start Date", text="Start Date", anchor=W)
-        table.heading("End Date", text="End Date", anchor=W)
         table.heading("Start Time", text="Start Time", anchor=W)
+        table.heading("End Date", text="End Date", anchor=W)
         table.heading("End Time", text="End Time", anchor=W)
         table.heading("Duration", text="Duration", anchor=W)
         db_reload()
@@ -715,10 +716,10 @@ class ViewPlan():  # Data Graph
         # LABELS
         label = Label(view, text="Start Date:", font=('Comic Sans MS',12), fg='black')
         label.place(anchor=NW, x=45, y=300)
-        label = Label(view, text="End Date:", font=('Comic Sans MS', 12), fg='black')
-        label.place(anchor=NW, x=45, y=340)
         label = Label(view, text="Start Time:", font=('Comic Sans MS', 12), fg='black')
         label.place(anchor=NW, x=45, y=380)
+        label = Label(view, text="End Date:", font=('Comic Sans MS', 12), fg='black')
+        label.place(anchor=NW, x=45, y=340)
         label = Label(view, text="End Time:", font=('Comic Sans MS', 12), fg='black')
         label.place(anchor=NW, x=45, y=420)
         
@@ -895,10 +896,10 @@ class Createplan():
 
         text = Label(create, text="Set Start Date:", font=('Comic Sans MS', 12), fg='black')
         text.place(anchor=NW, x=40, y=100)
-        text = Label(create, text="Set End Date:", font=('Comic Sans MS', 12), fg='black')
-        text.place(anchor=NW, x=40, y=170)
         text = Label(create, text="Set Start Time:", font=('Comic Sans MS', 12), fg='black')
         text.place(anchor=NW, x=40, y=240)
+        text = Label(create, text="Set End Date:", font=('Comic Sans MS', 12), fg='black')
+        text.place(anchor=NW, x=40, y=170)
         text = Label(create, text="Set End Time:", font=('Comic Sans MS', 12), fg='black')
         text.place(anchor=NW, x=40, y=310)
         text1 = Label(create, text="M/D/Y", font=('Comic Sans MS', 9), fg='black')
@@ -989,19 +990,19 @@ class Createplan():
 
         table = ttk.Treeview(create, height=4, selectmode="none")
 
-        table['columns'] = ("plan_id","Start Date", "End Date", "Start Time", "End Time")
+        table['columns'] = ("plan_id","Start Date", "Start Time", "End Date", "End Time")
 
         table.column('#0', width=0, stretch=NO)
         table.column('plan_id', anchor=W, width=0)        
         table.column('Start Date', anchor=W, width=72)
-        table.column('End Date', anchor=W, width=72)
         table.column('Start Time', anchor=W, width=72)
+        table.column('End Date', anchor=W, width=72)
         table.column('End Time', anchor=W, width=80)
         table.heading("#0", text="", anchor=W)
         table.heading("plan_id", text="id", anchor=W)
         table.heading("Start Date", text="Start Date", anchor=W)
-        table.heading("End Date", text="End Date", anchor=W)
         table.heading("Start Time", text="Start Time", anchor=W)
+        table.heading("End Date", text="End Date", anchor=W)
         table.heading("End Time", text="End Time", anchor=W)
         db_update()
         table.place(anchor=NW, x=400, y=100)
