@@ -17,7 +17,8 @@ class SLEEPdatabase:
                     time_start TEXT,
                     date_end TEXT,
                     time_end TEXT,
-                    duration TEXT
+                    duration TEXT,
+                    remark TEXT
                 )""")
         self.database.commit()
 

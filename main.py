@@ -27,8 +27,7 @@ class LogInWindow():  # login window
             passw = password.get()
             if user == "" and passw == "":
                 messagebox.showinfo("Warning!", "Please fill the required fields!")
-            # elif user == "Admin" and passw == "admin123":
-            elif user == " " and passw == " ":
+            elif user == "Admin" and passw == "admin123":
                 login.withdraw()
                 try:
                     login.after(800, login.destroy)
@@ -145,12 +144,12 @@ class NewMain(Frame):
                                 self.date_end.get(), time_end,
                                 str(sleep_duration)]
                 if sleep_duration != None:
-                    if db_update(current_entry):
+                    if db_update(current_entry) == True:
+                        messagebox.showinfo(title="Error!", message="Duplicate entry!")
+                    else:
                         current_entry.append(evaluation(sleep_duration))
                         self.sleepdb.insert_all('sleep_tracker', [current_entry])
                         db_update()
-                    else:
-                        messagebox.showinfo(title="Error!", message="Duplicate entry!")
             except ValueError:
                 messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
 
@@ -162,12 +161,11 @@ class NewMain(Frame):
                 table.insert("", 'end', iid=row_index, values=sleeptracker_db[row_index])
             #duplicate entry check
             if sleeptracker_db == []:
-                return True
+                return False
             if checker != None:
                 for row_index in range(len(sleeptracker_db)): 
                     if tuple(checker) == sleeptracker_db[row_index][1:6]:                      
-                        return False
-            # print(sleeptracker_db)
+                        return True
         
         # delete row in database and table
         def db_delete():
@@ -182,11 +180,11 @@ class NewMain(Frame):
         
         # entry(important)
         def evaluation(sleep_duration):
-            if sleep_duration >= timedelta(hours=8) or sleep_duration <= timedelta(hours=9):
+            if sleep_duration >= timedelta(hours=8) and sleep_duration <= timedelta(hours=9):
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
                                                             immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
                 return "Good"
-            elif sleep_duration >= timedelta(hours=10) or sleep_duration <= timedelta(hours=11):
+            elif sleep_duration >= timedelta(hours=10) and sleep_duration <= timedelta(hours=11):
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
                                                             immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
                 return "Excellent"
@@ -243,8 +241,6 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
             entry_date_obj.delete(0, END)
             entry_date_obj.insert(0, self.calendar.get_date())
             date_var.set(self.calendar.get_date())
-            # print(date_var.get()) # del_later
-            # print(date_var.get() == '') # del_later
 
         self.hours_start = StringVar()
         self.minutes_start = StringVar()
@@ -322,10 +318,6 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Clear All', font=('Comic Sans MS', 10),
                              borderwidth=0, border=3, command=db_cleartable)
         self.button.place(anchor=NW, x=720, y=600)
-        self.button = Button(newmain, width=16, bg='white', fg='black', text='View Improvements',
-                             font=('Comic Sans MS', 10),
-                             borderwidth=0, border=3, command=ViewImprovements)
-        self.button.place(anchor=NW, x=840, y=600)
         # treeview
         text = Label(newmain, text="Sleep Data", font=('Comic Sans MS', 13), fg='black', bg='#ffd39b', width=60)
         text.place(anchor=NW, x=430, y=110)
@@ -572,57 +564,18 @@ You can also delete the activity history for an organized look in this section o
         self.button.pack(anchor='nw', pady=1, padx=5)
         self.root.mainloop()
 
-
- # view improvement window
-
-class ViewImprovements():
-
-    def __init__(self):
-
-        improvements = Tk()
-
-        button = Button(improvements, text="Go back", width=10, borderwidth=1, fg='black', command=improvements.destroy)
-        button.place(anchor=NW, x=3, y=3)
-         # mydata =  #object for the data base
-        # mycursor = #mydata.cursor()
-
-        # mycursor.execute("dates", "sleeping hours")
-        # result = mycursor.fetchall
-
-        # Dates = []
-        # SleepHours = []
-
-        # for i in mycursor:
-        # Dates.append(i[0])
-        # SleepHours.append(i[1])
-
-        # print("Dates = ", Dates)
-        # print("Sleep Hours = ", SleepHours)
-
-        # plt.plot(Dates, SleepHours)
-        # plt.ylim(0,15)
-        # plt.xlabel("Dates")
-        # plt.tlabel("Sleep Hours")
-        # plt.title("Sleep Hours Data Graph")
-        # plt.show
-
-        improvements.title("SetPy: View Improvements")
-        improvements.geometry("700x500")
-        improvements.resizable(0,0)
-        improvements.mainloop()
-
 # view plan window
 
 class ViewPlan():  # Data Graph
     def __init__(self):
         view = Tk()
+        self.sleepdb_plan = SLEEPdatabase('sleep.db')
 
         def surequit():
             if messagebox.askyesno("Verify", "Are you sure you want to quit?"):
                 exit()
             else:
                 messagebox.showinfo("Return", "User will return to the Main Window.")
-
         def surelogout():
             if messagebox.askyesno("Verify", "Are you sure you want to logout?"):
                 messagebox.showinfo("Please wait..", "Logging out..")
@@ -631,14 +584,69 @@ class ViewPlan():  # Data Graph
             else:
                 messagebox.showinfo("Please wait...", "Navigating back..")
 
+        # Update Database and Table
+        def db_update():
+            try:
+                sleep_plan_db = self.sleepdb_plan.fetch('sleep_plans') # fetch database data
+                time_start = f'{self.hours_start.get()}:{self.minutes_start.get()}:{self.seconds_start.get()}'
+                time_end = f'{self.hours_end.get()}:{self.minutes_end.get()}:{self.seconds_end.get()}'
+                sleep_duration = time_duration(f'{self.date_start.get()} {time_start}', f'{self.date_end.get()} {time_end}')
+                current_entry = [self.date_start.get(), time_start,
+                                self.date_end.get(), time_end,
+                                str(sleep_duration), 'Plan']
+
+                table_selection = table.selection()
+                if len(table_selection) > 1:
+                    messagebox.showinfo(title="Error!", message="Only select ONE entry to update.")
+                
+                #duplicate entry check
+                if sleep_duration != None: # if start datetime is not older than end datetime
+                    if sleep_plan_db != [] and current_entry != None: # if database is not empty do duplicate checking
+                        for row_index in range(len(sleep_plan_db)): 
+                            if tuple(current_entry) == sleep_plan_db[row_index][1:5]:
+                                messagebox.showinfo(title="Error!", message="Duplicate entry!")
+                            else:
+                                self.sleepdb_plan.update('sleep_plans', 
+                                                            table.item(table_selection[0])['values'][0],
+                                                            self.date_start.get(),
+                                                            time_start,
+                                                            self.date_end.get(),
+                                                            time_end,
+                                                            f'{sleep_duration}', 'PLAN')
+                db_reload()
+            except ValueError:
+                messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
+
+        def db_reload():
+            sleep_plan_db = self.sleepdb_plan.fetch('sleep_plans') # fetch database data
+            table.delete(*table.get_children()) # clear contents of table
+            for row_index in range(len(sleep_plan_db)): # load into table
+                table.insert("", 'end', iid=row_index, values=sleep_plan_db[row_index])
+        
+        def db_delete():
+            table_selection = table.selection()
+            for index in table_selection:
+                self.sleepdb_plan.remove('sleep_plans', table.item(index)['values'][0])
+            db_reload()
+        
+        def db_cleartable():
+            self.sleepdb_plan.delete_table('sleep_plans')
+            db_reload()
+        
+        def time_duration(start_time, end_time):
+            t_duration = datetime.strptime(end_time, '%m/%d/%y %H:%M:%S') - datetime.strptime(start_time, '%m/%d/%y %H:%M:%S')
+            if t_duration.days < 0:
+                messagebox.showinfo(title="Error!", message="Start Date should be earlier than End Date.")
+                return None
+            else:
+                return t_duration
+
         def back():
             view.destroy()
             NewMain()
-
         def back2():
             view.destroy()
             Createplan()
-
         menu = Menu(view)
         view.config(menu=menu)
 
@@ -662,11 +670,9 @@ class ViewPlan():  # Data Graph
         helpMenu.add_command(label="About", command=self.about_popbox)
         menu.add_cascade(label="Help", menu=helpMenu)
 
-# treeview
-
-        label = Label(view, text="SetPy App", font=('Forte', 30), fg='black', bg='#ffd39b', width=33)
+        # treeview
+        label = Label(view, text="SetPy App", font=('Forte', 30), fg='black', bg='#ffd39b', width=700)
         label.pack(anchor=NW, padx=10, pady=5)
-
         tablestyle = ttk.Style()
         tablestyle.theme_use("clam")
         tablestyle.configure("Treeview",
@@ -678,23 +684,35 @@ class ViewPlan():  # Data Graph
         tablestyle.map("Treeview", background=[('selected', 'grey')])
 
         table = ttk.Treeview(view, height=8)
-
-        table['columns'] = ("Start Date", "End Date", "Start Time", "End Time")
-
+        table['columns'] = ("id","Start Date", "End Date", "Start Time", "End Time", "Duration")
         table.column('#0', width=0, stretch=NO)
-        table.column('Start Date', anchor=W, width=146)
-        table.column('End Date', anchor=W, width=146)
-        table.column('Start Time', anchor=W, width=146)
-        table.column('End Time', anchor=W, width=146)
+        table.column('id', anchor=W, width=2)
+        table.column('Start Date', anchor=W, width=131)
+        table.column('End Date', anchor=W, width=131)
+        table.column('Start Time', anchor=W, width=131)
+        table.column('End Time', anchor=W, width=131)
+        table.column('Duration', anchor=W, width=131)
         table.heading("#0", text="", anchor=W)
+        table.heading("id", text="id", anchor=W)
         table.heading("Start Date", text="Start Date", anchor=W)
         table.heading("End Date", text="End Date", anchor=W)
         table.heading("Start Time", text="Start Time", anchor=W)
         table.heading("End Time", text="End Time", anchor=W)
-        table.place(anchor=NW, x=50, y=60)
+        table.heading("Duration", text="Duration", anchor=W)
+        db_reload()
+        table.place(anchor=W, x=50, y=177)
 
-#  entries and buttons
+        # DATE & TIME VARIABLE  
+        self.date_start = StringVar()
+        self.date_end = StringVar()
+        self.hours_start = StringVar()
+        self.minutes_start = StringVar()
+        self.seconds_start = StringVar()
+        self.hours_end = StringVar()
+        self.minutes_end = StringVar()
+        self.seconds_end = StringVar()
 
+        # LABELS
         label = Label(view, text="Start Date:", font=('Comic Sans MS',12), fg='black')
         label.place(anchor=NW, x=45, y=300)
         label = Label(view, text="End Date:", font=('Comic Sans MS', 12), fg='black')
@@ -703,27 +721,69 @@ class ViewPlan():  # Data Graph
         label.place(anchor=NW, x=45, y=380)
         label = Label(view, text="End Time:", font=('Comic Sans MS', 12), fg='black')
         label.place(anchor=NW, x=45, y=420)
+        
+        self.entry_startdate = ttk.Entry(view, font=('Comic Sans', 13), width=20)
+        self.entry_startdate.place(anchor=NW, x=140, y=300)
+        self.entry_enddate = ttk.Entry(view, font=('Comic Sans', 13), width=20)
+        self.entry_enddate.place(anchor=NW, x=140, y=340)
+        # CALENDAR
+        date_today = date.today()
+        self.calendar = Calendar(view, selectmode="day", date_pattern='mm/dd/yy',
+                                    year=int(date_today.strftime("%Y")), 
+                                    month=int(date_today.strftime("%m")), 
+                                    day=int(date_today.strftime("%d")))
+        self.calendar.place(anchor=CENTER, x=463, y=392)
+        # highlight focus startentry or endentry
+        styleEntry = ttk.Style()
+        styleEntry.theme_use('clam')
+        styleEntry.map('TEntry', lightcolor=[('focus', 'green')])
+        self.entry_startdate.bind('<Button-1>', lambda e: pick_date(e, self.entry_startdate, self.date_start))
+        self.entry_enddate.bind('<Button-1>', lambda e: pick_date(e, self.entry_enddate, self.date_end))
+        
+        def pick_date(event, entry_date_obj, date_var):
+            entry_date_obj.delete(0, END)
+            entry_date_obj.insert(0, self.calendar.get_date())
+            date_var.set(self.calendar.get_date())
 
-        entry = Entry(view, font=('Comic Sans MS', 12), width=30)
-        entry.place(x=140, y=300)
-        entry = Entry(view, font=('Comic Sans MS', 12), width=30)
-        entry.place(x=140, y=340)
-        entry = Entry(view, font=('Comic Sans MS', 12), width=30)
-        entry.place(x=140, y=380)
-        entry = Entry(view, font=('Comic Sans MS', 12), width=30)
-        entry.place(x=140, y=420)
+        # pick time combobox
+        def picktime(textvar, combobox_obj, range, x_coor, y_coor):
+            combobox_obj = ttk.Combobox(view, textvariable=textvar, 
+                                                font=('Comic Sans MS', 11), width=4, foreground='black')
+            combobox_obj['values'] = [f'{m:02}' for m in range]
+            combobox_obj['state'] = 'readonly'
+            combobox_obj.place(anchor=CENTER, x=x_coor, y=y_coor)
+        # start time hours combobox
+        self.hours_start_cb = None
+        picktime(self.hours_start, self.hours_start_cb, range(0,24), 170, 390)
+        # start time minutes combobox
+        self.minutes_start_cb = None
+        picktime(self.minutes_start, self.hours_start_cb, range(0,60), 235, 390)
+        # start time seconds combobox
+        self.seconds_start_cb = None
+        picktime(self.seconds_start, self.hours_start_cb, range(0,60), 300, 390)
 
-        button = Button(view, text="Update", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=10, borderwidth=3)
-        button.place(x=500, y=310)
+        # end time hours combobox
+        self.hours_end_cb = None
+        picktime(self.hours_end, self.hours_end_cb, range(0,24), 170, 430)
+        # end time minutes combobox
+        self.minutes_end_cb = None
+        picktime(self.minutes_end, self.minutes_end_cb, range(0,60), 235, 430)
+        # end time seconds combobox
+        self.seconds_end_cb = None
+        picktime(self.seconds_end, self.seconds_end_cb, range(0,60), 300, 430)
+
+        button = Button(view, text="Update", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=10, 
+                        borderwidth=3, command=db_update)
+        button.place(x=600, y=298)
         button = Button(view, text="Delete", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=10,
-                        borderwidth=3)
-        button.place(x=500, y=355)
+                        borderwidth=3, command=db_delete)
+        button.place(x=600, y=343)
         button = Button(view, text="Clear All", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=10,
-                        borderwidth=3)
-        button.place(x=500, y=400)
+                        borderwidth=3, command=db_cleartable)
+        button.place(x=600, y=388)
 
         view.title("SetPy: View Your Sleep Schedule")
-        view.geometry("700x500")
+        view.geometry("775x520")
         view.resizable(0,0)
         view.mainloop()
 
@@ -739,10 +799,9 @@ class ViewPlan():  # Data Graph
 # create plan window
 
 class Createplan():
-
     def __init__(self):
-
         create = Tk()
+        self.sleepdb_cplan = SLEEPdatabase('sleep.db')
 
         def surequit():
             if messagebox.askyesno("Verify", "Are you sure you want to quit?"):
@@ -765,6 +824,46 @@ class Createplan():
         def back2():
             create.destroy()
             ViewPlan()
+        
+        # collect all entries and return as tuple
+        def process_entries():
+            try:
+                time_start = f'{self.hours_start.get()}:{self.minutes_start.get()}:{self.seconds_start.get()}'
+                time_end = f'{self.hours_end.get()}:{self.minutes_end.get()}:{self.seconds_end.get()}'
+                sleep_duration = time_duration(f'{self.date_start.get()} {time_start}', f'{self.date_end.get()} {time_end}')
+                current_entry = [self.date_start.get(), time_start,
+                                self.date_end.get(), time_end,
+                                str(sleep_duration), 'Plan']
+                if sleep_duration != None:
+                    if db_update(current_entry) == True:
+                        messagebox.showinfo(title="Error!", message="Duplicate entry!")
+                    else:
+                        self.sleepdb_cplan.insert_all('sleep_plans', [current_entry])
+                        db_update()
+            except ValueError:
+                messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
+
+        # Update Database and Table
+        def db_update(checker = None):
+            table.delete(*table.get_children())
+            sleeptracker_db = self.sleepdb_cplan.fetch('sleep_plans')
+            for row_index in range(len(sleeptracker_db)):
+                table.insert("", 'end', iid=row_index, values=sleeptracker_db[row_index])
+            #duplicate entry check
+            if sleeptracker_db == []:
+                return False
+            if checker != None:
+                for row_index in range(len(sleeptracker_db)): 
+                    if tuple(checker) == sleeptracker_db[row_index][1:7]:
+                        return True
+        
+        def time_duration(start_time, end_time):
+            t_duration = datetime.strptime(end_time, '%m/%d/%y %H:%M:%S') - datetime.strptime(start_time, '%m/%d/%y %H:%M:%S')
+            if t_duration.days < 0:
+                messagebox.showinfo(title="Error!", message="Start Date should be earlier than End Date.")
+                return None
+            else:
+                return t_duration
 
         menu = Menu(create)
         create.config(menu=menu)
@@ -810,21 +909,71 @@ class Createplan():
         text1.place(x=234, y=270)
         text1 = Label(create, text="H:M:S", font=('Comic Sans MS', 9), fg='black')
         text1.place(x=234, y=340)
-        calendar = Calendar(create, selectmode="day", year=2022, month=3, day=1)
-        calendar.place(anchor=NW, x=400, y=255)
+
+        # DATE & TIME VARIABLE  
+        self.date_start = StringVar()
+        self.date_end = StringVar()
+        self.hours_start = StringVar()
+        self.minutes_start = StringVar()
+        self.seconds_start = StringVar()
+        self.hours_end = StringVar()
+        self.minutes_end = StringVar()
+        self.seconds_end = StringVar()
+
+        date_today = date.today()
+        self.calendar = Calendar(create, selectmode="day", date_pattern='mm/dd/yy',
+                                    year=int(date_today.strftime("%Y")), 
+                                    month=int(date_today.strftime("%m")), 
+                                    day=int(date_today.strftime("%d")))
+        self.calendar.place(anchor=NW, x=400, y=255)
+
+        self.entry_startdate = ttk.Entry(create, font=('Comic Sans', 13), width=20)
+        self.entry_startdate.place(anchor=NW, x=170, y=100)
+        self.entry_enddate = ttk.Entry(create, font=('Comic Sans', 13), width=20)
+        self.entry_enddate.place(anchor=NW, x=170, y=170)
+
+        # highlight focus startentry or endentry
+        styleEntry = ttk.Style()
+        styleEntry.theme_use('clam')
+        styleEntry.map('TEntry', lightcolor=[('focus', 'green')])
+        self.entry_startdate.bind('<Button-1>', lambda e: pick_date(e, self.entry_startdate, self.date_start))
+        self.entry_enddate.bind('<Button-1>', lambda e: pick_date(e, self.entry_enddate, self.date_end))
+        
+        def pick_date(event, entry_date_obj, date_var):
+            entry_date_obj.delete(0, END)
+            entry_date_obj.insert(0, self.calendar.get_date())
+            date_var.set(self.calendar.get_date())
+        
+        # pick time combobox
+        def picktime(textvar, combobox_obj, range, x_coor, y_coor):
+            combobox_obj = ttk.Combobox(create, textvariable=textvar, 
+                                                font=('Comic Sans MS', 11), width=4, foreground='black')
+            combobox_obj['values'] = [f'{m:02}' for m in range]
+            combobox_obj['state'] = 'readonly'
+            combobox_obj.place(anchor=CENTER, x=x_coor, y=y_coor)
+        # start time hours combobox
+        self.hours_start_cb = None
+        picktime(self.hours_start, self.hours_start_cb, range(0,24), 200, 250)
+        # start time minutes combobox
+        self.minutes_start_cb = None
+        picktime(self.minutes_start, self.hours_start_cb, range(0,60), 262, 250)
+        # start time seconds combobox
+        self.seconds_start_cb = None
+        picktime(self.seconds_start, self.hours_start_cb, range(0,60), 324, 250)
+
+        # end time hours combobox
+        self.hours_end_cb = None
+        picktime(self.hours_end, self.hours_end_cb, range(0,24), 200, 320)
+        # end time minutes combobox
+        self.minutes_end_cb = None
+        picktime(self.minutes_end, self.minutes_end_cb, range(0,60), 262, 320)
+        # end time seconds combobox
+        self.seconds_end_cb = None
+        picktime(self.seconds_end, self.seconds_end_cb, range(0,60), 324, 320)
 
         button = Button(create, text="Create Plan", font=('Comic Sans MS', 12), fg='black', bg='#ffd39b', width=15,
-                        borderwidth=3)
+                        borderwidth=3, command=process_entries)
         button.place(anchor=NW, x=70, y=400)
-
-        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
-        entry.place(anchor=NW, x=170, y=100)
-        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
-        entry.place(anchor=NW, x=170, y=170)
-        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
-        entry.place(anchor=NW, x=170, y=240)
-        entry = Entry(create, font=('Comic Sans MS', 13), fg='black', width=17)
-        entry.place(anchor=NW, x=170, y=310)
 
         # treeview
 
@@ -840,22 +989,25 @@ class Createplan():
 
         table = ttk.Treeview(create, height=4, selectmode="none")
 
-        table['columns'] = ("Start Date", "End Date", "Start Time", "End Time")
+        table['columns'] = ("plan_id","Start Date", "End Date", "Start Time", "End Time")
 
         table.column('#0', width=0, stretch=NO)
-        table.column('Start Date', anchor=W, width=62)
-        table.column('End Date', anchor=W, width=61)
-        table.column('Start Time', anchor=W, width=62)
-        table.column('End Time', anchor=W, width=61)
+        table.column('plan_id', anchor=W, width=0)        
+        table.column('Start Date', anchor=W, width=72)
+        table.column('End Date', anchor=W, width=72)
+        table.column('Start Time', anchor=W, width=72)
+        table.column('End Time', anchor=W, width=80)
         table.heading("#0", text="", anchor=W)
+        table.heading("plan_id", text="id", anchor=W)
         table.heading("Start Date", text="Start Date", anchor=W)
         table.heading("End Date", text="End Date", anchor=W)
         table.heading("Start Time", text="Start Time", anchor=W)
         table.heading("End Time", text="End Time", anchor=W)
+        db_update()
         table.place(anchor=NW, x=400, y=100)
 
         create.title("SetPy: Create your Own Sleep Schedule")
-        create.geometry("700x500")
+        create.geometry("750x500")
         create.resizable(0, 0)
         create.mainloop()
 
