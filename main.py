@@ -145,17 +145,17 @@ class NewMain(Frame):
                                 self.date_end.get(), time_end,
                                 str(sleep_duration)]
                 if sleep_duration != None:
-                    if db_update(current_entry) == True:
+                    if db_refresh(current_entry) == True:
                         messagebox.showinfo(title="Error!", message="Duplicate entry!")
                     else:
                         current_entry.append(evaluation(sleep_duration))
                         self.sleepdb.insert_all('sleep_tracker', [current_entry])
-                        db_update()
+                        db_refresh()
             except ValueError:
                 messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
 
         # Update Database and Table
-        def db_update(checker = None):
+        def db_refresh(checker = None):
             table.delete(*table.get_children())
             sleeptracker_db = self.sleepdb.fetch('sleep_tracker')
             for row_index in range(len(sleeptracker_db)):
@@ -168,16 +168,55 @@ class NewMain(Frame):
                     if tuple(checker) == sleeptracker_db[row_index][1:6]:                      
                         return True
         
+        # Update Database and Table
+        def db_update():
+            table_selection = table.selection()
+            if len(table_selection) > 1:
+                messagebox.showinfo(title="Error!", message="Only select ONE entry to update.")
+                return None
+            try:
+                sleep_plan_db = self.sleepdb.fetch('sleep_tracker') # fetch database data
+                time_start = f'{self.hours_start.get()}:{self.minutes_start.get()}:{self.seconds_start.get()}'
+                time_end = f'{self.hours_end.get()}:{self.minutes_end.get()}:{self.seconds_end.get()}'
+                sleep_duration = time_duration(f'{self.date_start.get()} {time_start}', f'{self.date_end.get()} {time_end}')
+                current_entry = [self.date_start.get(), time_start,
+                                self.date_end.get(), time_end,
+                                str(sleep_duration), 'Plan']
+                sleep_evaluation = evaluation(sleep_duration)
+                #duplicate entry check
+                if sleep_duration != None: # if start datetime is not older than end datetime
+                    if sleep_plan_db != [] and current_entry != None: # if database is not empty do duplicate checking
+                        for row_index in range(len(sleep_plan_db)): 
+                            if tuple(current_entry) == sleep_plan_db[row_index][1:5]:
+                                messagebox.showinfo(title="Error!", message="Duplicate entry!")
+                            else:
+                                self.sleepdb.update('sleep_tracker', 
+                                                            table.item(table_selection[0])['values'][0],
+                                                            self.date_start.get(),
+                                                            time_start,
+                                                            self.date_end.get(),
+                                                            time_end,
+                                                            f'{sleep_duration}', sleep_evaluation)
+                db_reload()
+            except ValueError:
+                messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
+
+        def db_reload():
+            sleep_plan_db = self.sleepdb.fetch('sleep_tracker') # fetch database data
+            table.delete(*table.get_children()) # clear contents of table
+            for row_index in range(len(sleep_plan_db)): # load into table
+                table.insert("", 'end', iid=row_index, values=sleep_plan_db[row_index])
+
         # delete row in database and table
         def db_delete():
             table_selection = table.selection()
             for index in table_selection:
                 self.sleepdb.remove('sleep_tracker', table.item(index)['values'][0])
-            db_update()
+            db_refresh()
         
         def db_cleartable():
             self.sleepdb.delete_table('sleep_tracker')
-            db_update()
+            db_refresh()
         
         # entry(important)
         def evaluation(sleep_duration):
@@ -310,7 +349,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.button.place(anchor=NW, x=80, y=600)
         self.label = Label(newmain, text="", width=90, height=3, bg='#ffd39b')
         self.label.place(anchor=NW, x=410, y=592)
-        self.button = Button(newmain, width=10, bg='white', fg='black', text='Reload', font=('Comic Sans MS', 10),
+        self.button = Button(newmain, width=10, bg='white', fg='black', text='Update', font=('Comic Sans MS', 10),
                              borderwidth=0, border=3, command=db_update)
         self.button.place(anchor=NW, x=480, y=600)
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Delete', font=('Comic Sans MS', 10),
@@ -355,7 +394,7 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         table.heading("End of Sleep", text="End of Sleep", anchor=W)
         table.heading("Hours of Sleep", text="Hours of Sleep", anchor=W)
         table.heading("Status", text="Status", anchor=W)
-        db_update()
+        db_refresh()
         table.pack(pady=20)
 
         table.place(anchor=NW, x=425, y=140)
@@ -587,6 +626,10 @@ class ViewPlan():  # Data Graph
 
         # Update Database and Table
         def db_update():
+            table_selection = table.selection()
+            if len(table_selection) > 1:
+                messagebox.showinfo(title="Error!", message="Only select ONE entry to update.")
+                return None
             try:
                 sleep_plan_db = self.sleepdb_plan.fetch('sleep_plans') # fetch database data
                 time_start = f'{self.hours_start.get()}:{self.minutes_start.get()}:{self.seconds_start.get()}'
@@ -595,11 +638,6 @@ class ViewPlan():  # Data Graph
                 current_entry = [self.date_start.get(), time_start,
                                 self.date_end.get(), time_end,
                                 str(sleep_duration), 'Plan']
-
-                table_selection = table.selection()
-                if len(table_selection) > 1:
-                    messagebox.showinfo(title="Error!", message="Only select ONE entry to update.")
-                
                 #duplicate entry check
                 if sleep_duration != None: # if start datetime is not older than end datetime
                     if sleep_plan_db != [] and current_entry != None: # if database is not empty do duplicate checking
