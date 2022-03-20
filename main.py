@@ -5,7 +5,8 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import date
+from datetime import date, datetime, timedelta
+from database import SLEEPdatabase
 
 
 class LogInWindow():  # login window
@@ -26,14 +27,14 @@ class LogInWindow():  # login window
             passw = password.get()
             if user == "" and passw == "":
                 messagebox.showinfo("Warning!", "Please fill the required fields!")
-            elif user == "Admin" and passw == "admin123":
+            # elif user == "Admin" and passw == "admin123":
+            elif user == " " and passw == " ":
                 login.withdraw()
                 try:
                     login.after(800, login.destroy)
                     messagebox.showinfo('Please Wait..', "Logging In...", master=login)
                 except:
                     pass
-                new_window = NewMain()
                 NewMain()
             else:
                 messagebox.showinfo("Warning!", "Invalid!")
@@ -85,6 +86,7 @@ class NewMain(Frame):
         newmain = Tk()
         menu = Menu(newmain, tearoff=FALSE)
         newmain.config(menu=menu)
+        self.sleepdb = SLEEPdatabase('sleep.db')
 
         def surequit():
             if messagebox.askyesno("Verify", "Are you sure you want to quit?"):
@@ -133,43 +135,75 @@ class NewMain(Frame):
         self.text = Label(newmain, text="SetPy App", font=('Forte', 30), width=100, fg='black', bg='#ffd39b')
         self.text.pack(anchor=NW, ipady=5, padx=10, pady=10)
 
+        # collect all entries and return as tuple
+        def process_entries():
+            try:
+                time_start = f'{self.hours_start.get()}:{self.minutes_start.get()}:{self.seconds_start.get()}'
+                time_end = f'{self.hours_end.get()}:{self.minutes_end.get()}:{self.seconds_end.get()}'
+                sleep_duration = time_duration(f'{self.date_start.get()} {time_start}', f'{self.date_end.get()} {time_end}')
+                current_entry = [self.date_start.get(), time_start,
+                                self.date_end.get(), time_end,
+                                str(sleep_duration)]
+                if sleep_duration != None:
+                    if db_update(current_entry):
+                        current_entry.append(evaluation(sleep_duration))
+                        self.sleepdb.insert_all('sleep_tracker', [current_entry])
+                        db_update()
+                    else:
+                        messagebox.showinfo(title="Error!", message="Duplicate entry!")
+            except ValueError:
+                messagebox.showinfo(title="Error!", message="Fill all the entries and queries.")
+
+        # Update Database and Table
+        def db_update(checker = None):
+            table.delete(*table.get_children())
+            sleeptracker_db = self.sleepdb.fetch('sleep_tracker')
+            for row_index in range(len(sleeptracker_db)):
+                table.insert("", 'end', iid=row_index, values=sleeptracker_db[row_index])
+            #duplicate entry check
+            if sleeptracker_db == []:
+                return True
+            if checker != None:
+                for row_index in range(len(sleeptracker_db)): 
+                    if tuple(checker) == sleeptracker_db[row_index][1:6]:                      
+                        return False
+            # print(sleeptracker_db)
+        
+        # delete row in database and table
+        def db_delete():
+            table_selection = table.selection()
+            for index in table_selection:
+                self.sleepdb.remove('sleep_tracker', table.item(index)['values'][0])
+            db_update()
+        
+        def db_cleartable():
+            self.sleepdb.delete_table('sleep_tracker')
+            db_update()
+        
         # entry(important)
-        def evaluation():
-
-            global hour1
-            global hour2
-
-            h1 = int(hour1.get())
-            h2 = int(hour2.get())
-            m1 = int(min1.get())
-            m2 = int(min2.get())
-            s1 = int(sec1.get())
-            s2 = int(sec2.get())
-
-            hour1 = float((h1) + (m1 / 60) + (s1 / 60))
-            hour2 = float((h2) + (m2 / 60) + (s2 / 60))
-
-            sleephours = (24 - hour1) + hour2
-
-            if 8 >= sleephours or sleephours <= 9:
-                Label(newmain, text="Good").pack()
+        def evaluation(sleep_duration):
+            if sleep_duration >= timedelta(hours=8) or sleep_duration <= timedelta(hours=9):
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
                                                             immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
-            elif 10 >= sleephours:
-                Label(newmain, text="Excellent").pack()
+                return "Good"
+            elif sleep_duration >= timedelta(hours=10) or sleep_duration <= timedelta(hours=11):
                 messagebox.showinfo(title="Message", message="Keep Up The Good Sleeping Habit! It will help you maintain your health and improve your\
                                                             immune system to protect you from every kind of sickness. For more information, search for the 'The Benefits of Getting a Full Night's Sleep' by 'SCL Health' page.")
-            elif sleephours <= 11:
-                Label(newmain, text="Too much").pack()
+                return "Excellent"
+            elif sleep_duration > timedelta(hours=11):
                 messagebox.showinfo(title="Message", message="Please avoid sleeping too much. Too much is dangerous for your health! Even though sleep is essential,\
                                                             it is not good for your helth to sleep for a long period of time. It will destroy our health balance that may lead to degrading our immune system.\
                                                             For more information, search for the 'Oversleeping: The Effects & Health Risks of Sleeping Too Much' by 'Amerisleep' page.")
+                return "Too much"
             else:
-                Label(newmain, text="Need Improvement").pack()
                 messagebox.showinfo(title="Message", message="Please Track your Habits and Rest More! This kind of habits will degrade your health and immune system.\
 Lack of Sleep will destroy your health balance and the strength of your immune system. For more information, \
 search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clinic' page.")
+                return "Needs Improvement"
 
+        self.date_start = StringVar()
+        self.date_end = StringVar()
+        
        # startentry
         self.text1 = Label(newmain, text="Start Date:", font=('Comic Sans MS', 12), fg='black')
         self.text1.place(anchor=NW, x=35, y=100)
@@ -193,34 +227,39 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         styleEntry.theme_use('clam')
         styleEntry.map('TEntry', lightcolor=[('focus', 'green')])
 
-        self.entry_startdate.bind('<Button-1>', lambda e: pick_date(e, self.entry_startdate))
-        self.entry_enddate.bind('<Button-1>', lambda e: pick_date(e, self.entry_enddate))
+        self.entry_startdate.bind('<Button-1>', lambda e: pick_date(e, self.entry_startdate, self.date_start))
+        self.entry_enddate.bind('<Button-1>', lambda e: pick_date(e, self.entry_enddate, self.date_end))
 
         # calendar
         date_today = date.today()
-        self.calendar = Calendar(newmain, selectmode="day", 
+        self.calendar = Calendar(newmain, selectmode="day", date_pattern='mm/dd/yy',
                                     year=int(date_today.strftime("%Y")), 
                                     month=int(date_today.strftime("%m")), 
                                     day=int(date_today.strftime("%d")))
         self.calendar.place(anchor=NW, x=110, y=210)
+
         # get date calendar
-        def pick_date(event, entry_date):
-            entry_date.delete(0, END)
-            entry_date.insert(0, self.calendar.get_date())
+        def pick_date(event, entry_date_obj, date_var):
+            entry_date_obj.delete(0, END)
+            entry_date_obj.insert(0, self.calendar.get_date())
+            date_var.set(self.calendar.get_date())
+            # print(date_var.get()) # del_later
+            # print(date_var.get() == '') # del_later
 
-        global hour1
-        global min1
-        global sec1
-
-        global hour2
-        global min2
-        global sec2
-        hour1 = StringVar()
-        min1 = StringVar()
-        sec1 = StringVar()
-        hour2 = StringVar()
-        min2 = StringVar()
-        sec2 = StringVar()
+        self.hours_start = StringVar()
+        self.minutes_start = StringVar()
+        self.seconds_start = StringVar()
+        self.hours_end = StringVar()
+        self.minutes_end = StringVar()
+        self.seconds_end = StringVar()
+        
+        # pick time combobox
+        def picktime(textvar, combobox_obj, range, x_coor, y_coor):
+            combobox_obj = ttk.Combobox(newmain, textvariable=textvar, 
+                                                font=('Comic Sans MS', 11), width=4, foreground='black')
+            combobox_obj['values'] = [f'{m:02}' for m in range]
+            combobox_obj['state'] = 'readonly'
+            combobox_obj.place(anchor=NW, x=x_coor, y=y_coor)
 
         # starttime
         self.text1 = Label(newmain, text="Time of Sleep:(24 hours)", font=('Comic Sans MS', 12), fg='black')
@@ -231,15 +270,15 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.text1.place(anchor=NW, x=150, y=460)
         self.text1 = Label(newmain, text="Second:", font=('Comic Sans MS', 10), fg='black')
         self.text1.place(anchor=NW, x=270, y=460)
-        self.hours_start = Entry(newmain, textvariable=hour1, font=('Comic Sans MS', 11), width=6, fg='black',
-                                 borderwidth=2)
-        self.hours_start.place(anchor=NW, x=88, y=460)
-        self.minutes_start = Entry(newmain, textvariable=min1, font=('Comic Sans MS', 11), width=6, fg='black',
-                                   borderwidth=2)
-        self.minutes_start.place(anchor=NW, x=206, y=460)
-        self.seconds_start = Entry(newmain, textvariable=sec1, font=('Comic Sans MS', 11), width=6, fg='black',
-                                   borderwidth=2)
-        self.seconds_start.place(anchor=NW, x=330, y=460)
+        # start time hours combobox
+        self.hours_start_cb = None
+        picktime(self.hours_start, self.hours_start_cb, range(0,24), 88, 460)
+        # start time minutes combobox
+        self.minutes_start_cb = None
+        picktime(self.minutes_start, self.minutes_start_cb, range(0,60), 206, 460)
+        # start time seconds combobox
+        self.seconds_start_cb = None
+        picktime(self.seconds_start, self.seconds_start_cb, range(0,60), 330, 460)
 
         # endtime
         self.text1 = Label(newmain, text="End of Sleep:(24 hours)", font=('Comic Sans MS', 12), fg='black')
@@ -250,30 +289,38 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         self.text1.place(anchor=NW, x=150, y=545)
         self.text1 = Label(newmain, text="Second:", font=('Comic Sans MS', 10), fg='black')
         self.text1.place(anchor=NW, x=269, y=545)
-        self.hours_end = Entry(newmain, textvariable=hour2, font=('Comic Sans MS', 11), width=6, fg='black',
-                               borderwidth=2)
-        self.hours_end.place(anchor=NW, x=88, y=545)
-        self.minutes_end = Entry(newmain, textvariable=min2, font=('Comic Sans MS', 11), width=6, fg='black',
-                                 borderwidth=2)
-        self.minutes_end.place(anchor=NW, x=206, y=545)
-        self.seconds_end = Entry(newmain, textvariable=sec2, font=('Comic Sans MS', 11), width=6, fg='black',
-                                 borderwidth=2)
-        self.seconds_end.place(anchor=NW, x=330, y=545)
+        # end time hours combobox
+        self.hours_end_cb = None
+        picktime(self.hours_end, self.hours_end_cb, range(0,24), 88, 545)
+        # end time minutes combobox
+        self.minutes_end_cb = None
+        picktime(self.minutes_end, self.minutes_end_cb, range(0,60), 206, 545)
+        # end time seconds combobox
+        self.seconds_end_cb = None
+        picktime(self.seconds_end, self.seconds_end_cb, range(0,60), 330, 545)
+
+        def time_duration(start_time, end_time):
+            t_duration = datetime.strptime(end_time, '%m/%d/%y %H:%M:%S') - datetime.strptime(start_time, '%m/%d/%y %H:%M:%S')
+            if t_duration.days < 0:
+                messagebox.showinfo(title="Error!", message="Start Date should be earlier than End Date.")
+                return None
+            else:
+                return t_duration
 
         # Buttons
         self.button = Button(newmain, width=10, bg='#ffd39b', fg='black', text='Submit', font=('Comic Sans MS', 10),
-                             borderwidth=0, border=3, command=evaluation)
+                             borderwidth=0, border=3, command=process_entries)
         self.button.place(anchor=NW, x=80, y=600)
         self.label = Label(newmain, text="", width=90, height=3, bg='#ffd39b')
         self.label.place(anchor=NW, x=410, y=592)
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Update', font=('Comic Sans MS', 10),
-                             borderwidth=0, border=3)
+                             borderwidth=0, border=3, command=db_update)
         self.button.place(anchor=NW, x=480, y=600)
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Delete', font=('Comic Sans MS', 10),
-                             borderwidth=0, border=3)
+                             borderwidth=0, border=3, command=db_delete)
         self.button.place(anchor=NW, x=600, y=600)
         self.button = Button(newmain, width=10, bg='white', fg='black', text='Clear All', font=('Comic Sans MS', 10),
-                             borderwidth=0, border=3)
+                             borderwidth=0, border=3, command=db_cleartable)
         self.button.place(anchor=NW, x=720, y=600)
         self.button = Button(newmain, width=16, bg='white', fg='black', text='View Improvements',
                              font=('Comic Sans MS', 10),
@@ -298,8 +345,9 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
                              )
         tablestyle.map("Treeview", background=[('selected', 'grey')])
         table = ttk.Treeview(newmain, height=15)
-        table['columns'] = ("Start Date", "End Date", "Start of Sleep", "End of Sleep", "Hours of Sleep", "Status")
+        table['columns'] = ("id","Start Date", "End Date", "Start of Sleep", "End of Sleep", "Hours of Sleep", "Status")
         table.column('#0', width=0, stretch=NO)
+        table.column('id', anchor=W, width=0)
         table.column('Start Date', anchor=W, width=90)
         table.column('End Date', anchor=W, width=90)
         table.column('Start of Sleep', anchor=W, width=100)
@@ -307,15 +355,14 @@ search for the 'What Happens When You Don't Get Enough Sleep' by 'Cleveland Clin
         table.column('Hours of Sleep', anchor=W, width=110)
         table.column('Status', anchor=W, width=110)
         table.heading("#0", text="", anchor=W)
+        table.heading("id", text="id", anchor=W)
         table.heading("Start Date", text="Start Date", anchor=W)
         table.heading("End Date", text="End Date", anchor=W)
         table.heading("Start of Sleep", text="Start of Sleep", anchor=W)
         table.heading("End of Sleep", text="End of Sleep", anchor=W)
         table.heading("Hours of Sleep", text="Hours of Sleep", anchor=W)
         table.heading("Status", text="Status", anchor=W)
-        
-        # Adding Data (Temp)
-        table.insert("", 'end', iid=0, values=("3/15/2022", "3/16/2022", "10:30:00", "9:30:00", "11", "Good"))
+        db_update()
         table.pack(pady=20)
 
         table.place(anchor=NW, x=425, y=140)
